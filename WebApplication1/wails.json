@@ -1,0 +1,12 @@
+{
+  "name": "QEDit",
+  "frontend:dir": "wwwroot",
+  "assetdir": "wwwroot",
+  "reloadpath": "wwwroot",
+  "outputfilename": "QEDit",
+  "wailsjsdir": "./wailsjs",
+  "author": {
+    "name": "Octavian",
+    "email": ""
+  }
+}

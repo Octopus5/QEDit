@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ro" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QEDit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --accent-glow: #22c55e;
+        }
+
+        .light {
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(45, 212, 191, 0.4);
+            --accent-glow: #ec4899;
+            --accent-pink: #ec4899;
+            --accent-pink-soft: #ffffff;
+            --accent-turquoise: #0d9488;
+            --accent-turquoise-soft: #ffffff;
+            --text-main: #1e293b;
+            --bg-main: #ffffff;
+            --shadow-elevation: 0 10px 15px -3px rgba(244, 114, 182, 0.1);
+        }
+
+        .light #bg-canvas {
+            display: none;
+        }
+
+        .cyberpunk {
+            --glass-bg: rgba(15, 0, 30, 0.9);
+            --glass-border: rgba(0, 243, 255, 0.3);
+            --accent-glow: #00f3ff;
+            --accent-glow-secondary: #ff00ff;
+            --text-main: #00f3ff;
+            --bg-main: #050010;
+        }
+
+        /* Liquid Glass Base */
+        .liquid-glass {
+            background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            position: relative;
+            animation: frost-pulse 12s ease-in-out infinite;
+        }
+
+        @keyframes frost-pulse {
+            0%, 100% { backdrop-filter: blur(40px) saturate(200%); }
+            50% { backdrop-filter: blur(55px) saturate(160%); }
+        }
+
+        .liquid-glass:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 20px 0 var(--accent-glow);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+            animation-play-state: paused;
+        }
+
+        /* Shimmer Effect */
+        .shimmer-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer-wrapper::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.03) 45%,
+                rgba(255, 255, 255, 0.08) 50%,
+                rgba(255, 255, 255, 0.03) 55%,
+                transparent
+            );
+            transform: rotate(-45deg);
+            animation: shimmer 6s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(-45deg); }
+            100% { transform: translateX(100%) rotate(-45deg); }
+        }
+
+        /* Floating Animation */
+        .float-anim {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Button Shimmer Effect */
+        .action-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(30deg) translateX(-150%);
+            transition: 0.8s;
+        }
+        .action-btn:hover::after { transform: rotate(30deg) translateX(150%); }
+
+        /* Magnetic Button feel */
+        .btn-magnetic {
+            transition: transform 0.2s outset;
+        }
+
+        /* Cyberpunk Grid Overlay */
+        .cyberpunk::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.15;
+        }
+
+        /* Section Transitions */
+        .module-section {
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .section-enter {
+            animation: sectionBlurIn 0.8s forwards;
+        }
+
+        @keyframes sectionBlurIn {
+            from { opacity: 0; filter: blur(10px); transform: scale(0.98); }
+            to { opacity: 1; filter: blur(0); transform: scale(1); }
+        }
+
+        h2.animated-title {
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .light h2.animated-title {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Staggered load animation classes */
+        .reveal-item {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .reveal-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-glow);
+        }
+
+        /* Hero Section Modernization */
+        .nav-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: currentColor;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-btn.active, .nav-btn:hover {
+            color: var(--accent-glow);
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .nav-btn.active::before, .nav-btn:hover::before {
+            width: 80%;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        /* Uppercase Headings */
+        h2.animated-title {
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-mono transition-colors duration-300">
+    <script>
+        // Fail-safe: Elimină ecranul de încărcare dacă apare o eroare critică de script
+        window.addEventListener('error', function() {
+            const loader = document.getElementById('loading-overlay');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }
+        }, true);
+    </script>
+    <!-- Background Animation -->
+    <canvas id="bg-canvas" class="fixed inset-0 z-0 pointer-events-none opacity-40"></canvas>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[100] flex flex-col gap-2"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-overlay" class="fixed inset-0 bg-gray-900 flex items-center justify-center z-[200] transition-opacity duration-500">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="liquid-glass p-4 sticky top-0 z-50 transition-all duration-300 rounded-b-2xl mx-4 mt-2">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="hidden sm:flex items-center flex-shrink-0">
+                <img src="images/logo-dark.png" alt="QEDit Logo" class="h-10 md:h-12 lg:h-14 w-auto object-contain transition-transform hover:scale-105">
+            </a>
+            <div class="flex space-x-4" id="nav-tabs">
+                <button data-tab="catalog" class="nav-btn active" data-i18n="nav_catalog" data-text="CATALOG">CATALOG</button>
+                <button data-tab="lab" class="nav-btn" data-i18n="nav_lab" data-text="LABORATOR">LABORATOR</button>
+                <button data-tab="collider" class="nav-btn" data-i18n="nav_collider" data-text="COLLIDER">COLLIDER</button>
+                <button data-tab="info" class="nav-btn" data-i18n="nav_info" data-text="INFO">INFO</button>
+                <button data-tab="other" class="nav-btn" data-i18n="nav_other" data-text="ALTE FUNCȚII">ALTE FUNCȚII</button>
+            </div>
+            <div class="flex items-center space-x-4 ml-4 border-l border-gray-300 dark:border-gray-700 pl-4">
+                <button id="theme-toggle" class="text-gray-500 hover:text-green-500 dark:hover:text-green-400 transition-colors">
+                    <i class="fa-solid fa-sun" id="theme-icon-sun"></i>
+                    <i class="fa-solid fa-moon hidden" id="theme-icon-moon"></i>
+                    <i class="fa-solid fa-robot hidden" id="theme-icon-cyber"></i>
+                </button>
+                <button onclick="changeLanguage('ro')" class="lang-btn text-xs font-bold text-green-400 hover:text-white transition-colors" id="btn-ro">RO</button>
+                <button onclick="changeLanguage('en')" class="lang-btn text-xs font-bold text-gray-500 hover:text-white transition-colors" id="btn-en">EN</button>
+                <button onclick="changeLanguage('fr')" class="lang-btn text-xs font-bold text-gray-500 hover:text-white transition-colors" id="btn-fr">FR</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-6 relative z-10">
+        
+        <!-- Module: Catalog -->
+        <section id="catalog" class="module-section">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="animated-title text-3xl border-l-4 border-blue-500 pl-4" data-i18n="catalog_title" data-text="Catalogul Modelului Standard">Catalogul Modelului Standard</h2>
+                <div id="search-container" class="relative flex items-center z-30">
+                    <button id="search-btn" class="text-gray-500 dark:text-gray-400 hover:text-blue-500 transition-colors p-2"><i class="fa-solid fa-search"></i></button>
+                    <input type="text" id="catalog-search" data-i18n-placeholder="search_placeholder" placeholder="Caută particulă..." class="modern-input rounded-md py-2 pl-4 pr-4 focus:outline-none w-0 opacity-0">
+                    <button id="search-clear-btn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-red-500 hidden z-10"><i class="fa-solid fa-xmark"></i></button>
+                    <div id="autocomplete-list" class="absolute top-full mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg hidden"></div>
+                </div>
+            </div>
+            <div id="catalog-container" class="space-y-8">
+                <!-- Generated by JS -->
+            </div>
+        </section>
+
+        <!-- Module: Lab -->
+        <section id="lab" class="module-section hidden">
+            <h2 class="animated-title text-3xl mb-6 border-l-4 border-purple-500 pl-4" data-i18n="lab_title" data-text="Reactor de Hadroni">Reactor de Hadroni</h2>
+            <div class="grid grid-cols-1 gap-8 relative">
+                <!-- Synthesis Area -->
+                <div class="liquid-glass shimmer-wrapper p-8 rounded-3xl relative overflow-hidden" id="synthesis-area">
+                    <div id="lab-particles" class="absolute inset-0 pointer-events-none overflow-hidden z-0"></div>
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
+                    <h3 class="text-xl mb-4 text-purple-600 dark:text-purple-300" data-i18n="lab_synthesis">Sinteză Particule</h3>
+                    <div class="flex justify-center gap-4 mb-8" id="reactor-slots">
+                        <div class="slot border-2 border-dashed border-gray-400 dark:border-gray-600 w-24 h-24 flex items-center justify-center rounded cursor-pointer hover:border-purple-400 transition" data-index="0">?</div>
+                        <div class="slot border-2 border-dashed border-gray-400 dark:border-gray-600 w-24 h-24 flex items-center justify-center rounded cursor-pointer hover:border-purple-400 transition" data-index="1">?</div>
+                        <div class="slot border-2 border-dashed border-gray-400 dark:border-gray-600 w-24 h-24 flex items-center justify-center rounded cursor-pointer hover:border-purple-400 transition" data-index="2">?</div>
+                    </div>
+
+                    <div id="trash-zone" class="absolute bottom-4 right-4 w-16 h-16 flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-400 dark:border-gray-700 rounded-full transition-all" data-i18n-title="lab_trash_title" title="Trageți un quarc aici pentru a-l șterge">
+                        <i class="fa-solid fa-trash-can fa-xl"></i>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="text-sm text-gray-600 dark:text-gray-400 mb-2" data-i18n="lab_available">Quarci Disponibili pentru Sinteză:</h4>
+                        <div class="flex flex-wrap gap-2 justify-center" id="quark-selection">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="text-center flex justify-center gap-4">
+                        <button id="synthesize-btn" class="action-btn bg-purple-600 hover:bg-purple-500 text-white px-8 py-3 rounded font-bold tracking-wider shadow-lg shadow-purple-500/50 dark:shadow-[0_0_15px_rgba(147,51,234,0.5)] active:scale-95 transform transition-transform" data-i18n="lab_btn_synthesize">SINTETIZEAZĂ</button>
+                        <button id="clear-slots-btn" class="action-btn bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded font-bold tracking-wider active:scale-95 transform transition-transform" data-i18n="lab_btn_clear">Resetează</button>
+                    </div>
+                    
+                    <button id="toggle-recipes-btn" class="absolute top-6 right-6 text-gray-500 hover:text-purple-500 transition-colors" title="Arată/Ascunde Rețete">
+                        <i class="fa-solid fa-book-open fa-xl"></i>
+                    </button>
+                    <div id="synthesis-result" class="mt-6 text-center min-h-[2rem] font-bold"></div>
+                </div>
+                
+                <!-- Recipes Panel -->
+                <div id="recipes-panel" class="animated-panel glass-panel p-6 rounded hidden absolute top-0 right-0 w-full lg:w-1/3 h-full z-20 overflow-y-auto border-l border-gray-300 dark:border-gray-700 shadow-2xl transform translate-x-full transition-transform duration-300">
+                    <button id="close-recipes-btn" class="absolute top-4 right-4 text-gray-500 hover:text-red-500"><i class="fa-solid fa-xmark fa-lg"></i></button>
+                    <h3 class="text-xl mb-4 text-green-600 dark:text-green-400" data-i18n="lab_recipes"><i class="fa-solid fa-book-open mr-2"></i> Rețete Cunoscute</h3>
+                    <div class="space-y-4" id="recipes-list">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module: Collider -->
+        <section id="collider" class="module-section hidden">
+            <h2 class="animated-title text-3xl mb-6 border-l-4 border-red-600 pl-4 tracking-tighter uppercase" data-i18n="collider_title" data-text="LHC - CONTROL CENTER UNIT">LHC - CONTROL CENTER UNIT</h2>
+            
+            <!-- Visualizer -->
+            <div class="mb-6 relative group border-4 border-gray-800 dark:border-black rounded-3xl overflow-hidden shadow-2xl bg-black/50 backdrop-blur-sm">
+                <canvas id="collider-canvas" class="w-full h-80 bg-black/40 shadow-inner opacity-90"></canvas>
+                <div class="absolute top-2 right-2 text-xs text-red-500 font-mono animate-pulse" data-i18n="collider_live_feed">LIVE FEED // ATLAS DETECTOR</div>
+                <div class="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <button id="zoom-out-btn" class="bg-gray-800/80 text-white w-8 h-8 rounded-full hover:bg-gray-700 flex items-center justify-center backdrop-blur-sm border border-gray-600 transition-transform active:scale-95"><i class="fa-solid fa-minus"></i></button>
+                    <button id="zoom-in-btn" class="bg-gray-800/80 text-white w-8 h-8 rounded-full hover:bg-gray-700 flex items-center justify-center backdrop-blur-sm border border-gray-600 transition-transform active:scale-95"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <div class="absolute inset-0 pointer-events-none border-[20px] border-black/30 mix-blend-overlay rounded-2xl"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="console-grid">
+                <!-- Controls -->
+                <div class="liquid-glass p-6 rounded-2xl border-t-4 border-t-red-600 relative overflow-hidden flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-black text-red-600 dark:text-red-400 uppercase tracking-tighter"><i class="fa-solid fa-microchip mr-2 text-red-500"></i>PRIMARY CONSOLE</h3>
+                        <div class="flex gap-2 items-center" id="led-container">
+                            <div class="flex flex-col items-center"><div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" id="led-power"></div><span class="text-[7px] mt-1 text-gray-500 font-bold">PWR</span></div>
+                            <div class="flex flex-col items-center"><div class="w-2 h-2 rounded-full bg-gray-500" id="led-beam"></div><span class="text-[7px] mt-1 text-gray-500 font-bold">BEAM</span></div>
+                            <div class="flex flex-col items-center"><div class="w-2 h-2 rounded-full bg-gray-500" id="led-collision"></div><span class="text-[7px] mt-1 text-gray-500 font-bold">COL</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 text-[10px] bg-black/40 p-2 rounded border border-white/5 font-bold uppercase tracking-widest flex justify-between items-center">
+                        <span class="text-gray-500">STATUS:</span> <span id="system-status-text" class="text-green-500">SYSTEM READY</span>
+                        <i class="fa-solid fa-circle-notch fa-spin text-green-500/50 hidden" id="status-spinner"></i>
+                    </div>
+                    
+                    <!-- Famous Experiments -->
+                    <div class="mb-6 p-4 bg-black/20 rounded-lg border border-white/5">
+                        <h4 class="text-[10px] font-bold text-teal-600 dark:text-teal-400 mb-3 uppercase tracking-widest" data-i18n="collider_experiments">Experiment Profile</h4>
+                        <select id="famous-experiment-select" class="w-full modern-input rounded p-2 text-sm text-gray-800 dark:text-white outline-none mb-3"></select>
+                        <button id="run-famous-experiment-btn" class="action-btn w-full bg-teal-800 hover:bg-teal-600 text-white py-2 rounded font-bold shadow-lg active:scale-95 transition-all uppercase tracking-widest text-[10px]" data-i18n="collider_btn_simulate">LOAD PARAMETERS</button>
+                    </div>
+
+                    <!-- Beam Configuration -->
+                    <div class="mb-6 p-4 bg-black/20 rounded-lg border border-white/5">
+                        <h4 class="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-widest" data-i18n="collider_beam">Beam Injection</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] text-red-500 font-bold block mb-1 uppercase" data-i18n="collider_beam1">Fascicul 1</label>
+                                <select id="beam-1" class="w-full modern-input rounded p-2 text-sm text-gray-800 dark:text-white outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-blue-500 font-bold block mb-1 uppercase" data-i18n="collider_beam2">Fascicul 2</label>
+                                <select id="beam-2" class="w-full modern-input rounded p-2 text-sm text-gray-800 dark:text-white outline-none"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-black/40 rounded-lg border border-red-900/30">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4" data-i18n="collider_energy">Collision Energy</label>
+                        <input type="range" id="energy-slider" min="0.9" max="14" step="0.1" value="0.9" class="w-full accent-red-500">
+                        <div class="flex justify-between items-center mt-4">
+                            <div class="flex gap-1">
+                                <div class="w-1 h-6 bg-red-600/30 rounded-full" id="en-bar-1"></div>
+                                <div class="w-1 h-6 bg-red-600/30 rounded-full" id="en-bar-2"></div>
+                                <div class="w-1 h-6 bg-red-600/30 rounded-full" id="en-bar-3"></div>
+                            </div>
+                            <div class="text-right text-red-600 dark:text-red-500 font-mono text-3xl font-black leading-none drop-shadow-[0_0_10px_rgba(220,38,38,0.3)]">
+                                <span id="energy-val">0.90 TeV</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 font-mono text-[11px] uppercase tracking-tighter">
+                        <div class="flex justify-between" title="Intensitatea câmpului magnetic necesar pentru a curba traiectoria particulelor"><span data-i18n="collider_mag">Câmp Magnetic:</span> <span id="mag-field" class="text-blue-600 dark:text-blue-400">0.0 T</span></div>
+                        <div class="flex justify-between" title="Temperatura magneților superconductori"><span data-i18n="collider_temp">Temperatură:</span> <span id="temp-val" class="text-blue-600 dark:text-blue-400">300 K</span></div>
+                        <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/10">
+                            <div class="p-2 bg-black/30 rounded"><span class="text-gray-500 block text-[9px]" data-i18n="collider_lumi">Luminosity</span><span id="lumi-val" class="text-green-500 text-xs">0</span></div>
+                            <div class="p-2 bg-black/30 rounded"><span class="text-gray-500 block text-[9px]" data-i18n="collider_rate">Collision Rate</span><span id="rate-val" class="text-green-500 text-xs">0</span></div>
+                            <div class="p-2 bg-black/30 rounded"><span class="text-gray-500 block text-[9px]" data-i18n="collider_events">Event Count</span><span id="events-val" class="text-amber-500 text-xs">0</span></div>
+                            <div class="p-2 bg-black/30 rounded"><span class="text-gray-500 block text-[9px]" data-i18n="collider_cross">Cross Section</span><span id="cross-section-val" class="text-teal-500 text-xs">0</span></div>
+                            <div class="p-2 bg-black/30 rounded col-span-2"><span class="text-gray-500 block text-[9px]" data-i18n="collider_eff">Efficiency</span><span id="efficiency-val" class="text-purple-500 text-xs">0%</span></div>
+                        </div>
+                    </div>
+                    <button id="run-collider-btn" class="action-btn mt-6 w-full bg-gradient-to-b from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white py-4 rounded-xl font-black tracking-widest shadow-xl active:translate-y-1 transition-all border-b-4 border-red-950" data-i18n="collider_btn_init">ENGAGE COLLISION</button>
+                </div>
+
+                <!-- Terminal -->
+                <div class="terminal-container crt-effect bg-black p-4 rounded-2xl border border-gray-800 font-mono text-xs h-80 overflow-hidden flex flex-col shadow-inner relative">
+                    <div class="text-gray-500 border-b border-gray-800 pb-2 mb-2" data-i18n="collider_terminal">TERMINAL OUTPUT</div>
+                    <div id="terminal-logs" class="flex-1 overflow-y-auto space-y-1 text-green-600 dark:text-green-500">
+                        <!-- Logs generated by JS -->
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-full h-4 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
+                </div>
+
+                <!-- Real-time Data Analytics & Histogram -->
+                <div class="lg:col-span-1 flex flex-col gap-6 relative">
+                    <div class="liquid-glass p-5 rounded-2xl border-t-4 border-t-blue-500 flex-1 flex flex-col min-h-[180px]">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-black text-blue-500 uppercase tracking-tighter"><i class="fa-solid fa-chart-line mr-2 text-blue-400"></i>Spectrogram</h3>
+                            <i class="fa-solid fa-chart-area text-blue-500/50 animate-pulse"></i>
+                        </div>
+                        <div class="flex-1 relative">
+                            <canvas id="histogram-canvas"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="liquid-glass p-5 rounded-2xl border-t-4 border-t-amber-500 flex-1 flex flex-col overflow-hidden min-h-[300px] relative">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-black text-amber-500 uppercase tracking-tighter"><i class="fa-solid fa-dna mr-2 text-amber-400"></i><span data-i18n="collider_particle_id">Automated Particle ID</span></h3>
+                        </div>
+                        <div id="particle-analysis-list" class="flex-1 overflow-y-auto space-y-2 font-mono text-[11px] relative">
+                            <div class="text-gray-500 italic text-center mt-10" data-i18n="awaiting_data">Awaiting collision data...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module: Info -->
+        <section id="info" class="module-section hidden">
+            <h2 class="animated-title text-3xl mb-8 border-l-4 border-teal-500 pl-4 tracking-tighter" data-i18n="info_title" data-text="CENTRU DE DOCUMENTARE ȘTIINȚIFICĂ">CENTRU DE DOCUMENTARE ȘTIINȚIFICĂ</h2>
+            
+            <!-- Sub-header for categorization -->
+            <div class="info-sub-nav scrollbar-hidden">
+                <button class="info-tab-btn active" data-info-tab="general" data-i18n="info_tab_model">Modelul Standard</button>
+                <button class="info-tab-btn" data-info-tab="dynamics" data-i18n="info_tab_dynamics">Forțe & Materie</button>
+                <button class="info-tab-btn" data-info-tab="ref" data-i18n="info_tab_ref">Glosar & Unități</button>
+                <button class="info-tab-btn" data-info-tab="history" data-i18n="info_tab_history">Cronologie</button>
+                <!-- Quick Search Input -->
+                <div class="ml-auto relative flex items-center">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 text-teal-500/50 text-xs"></i>
+                    <input type="text" id="info-quick-search" placeholder="Căutare rapidă..." data-i18n-placeholder="info_search_placeholder" class="bg-teal-500/5 border border-teal-500/20 rounded-full py-1 pl-8 pr-4 text-xs focus:outline-none focus:border-teal-500/50 transition-all w-32 focus:w-48">
+                </div>
+            </div>
+
+            <div id="info-content-area">
+                <!-- General: Standard Model -->
+                <div class="grid grid-cols-1 gap-8" data-info-content="general">
+                    <div class="liquid-glass shimmer-wrapper p-8 rounded-3xl reveal-item overflow-hidden">
+                        <div class="absolute top-4 right-8 text-[8px] text-teal-500/50 font-black tracking-[0.3em]">REF_CORE_DOC_01</div>
+                        <h3 class="text-xl font-black text-teal-500 uppercase tracking-tighter mb-6" data-i18n="info_model"><i class="fa-solid fa-book-atlas mr-3 text-teal-400/50"></i> Modelul Standard</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-8 text-lg leading-relaxed italic border-l-2 border-teal-500/20 pl-6" data-i18n="info_model_desc">Modelul Standard este cadrul teoretic al teoriei cuantice a câmpurilor care descrie trei dintre cele patru forțe fundamentale (electromagnetică, slabă și tare) și clasifică toate particulele elementare descoperite.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                            <div class="bg-purple-100 dark:bg-purple-900/20 p-3 rounded border border-purple-200 dark:border-purple-800"><strong class="text-purple-600 dark:text-purple-400 block mb-1" data-i18n="term_quarks">Quarci:</strong> <span class="text-sm text-gray-600 dark:text-gray-400" data-i18n="desc_quarks">Fermioni fundamentali care formează hadronii (ex: protoni).</span></div>
+                            <div class="bg-green-100 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800"><strong class="text-green-600 dark:text-green-400 block mb-1" data-i18n="term_leptons">Leptoni:</strong> <span class="text-sm text-gray-600 dark:text-gray-400" data-i18n="desc_leptons">Particule precum electronul și neutrinii.</span></div>
+                            <div class="bg-red-100 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800"><strong class="text-red-600 dark:text-red-400 block mb-1" data-i18n="term_bosons">Bosoni:</strong> <span class="text-sm text-gray-600 dark:text-gray-400" data-i18n="desc_bosons">Purtătorii de forță (ex: fotonul, gluonul).</span></div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Dynamics: Forces & Generations -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden" data-info-content="dynamics">
+                    <div class="liquid-glass shimmer-wrapper p-8 rounded-3xl reveal-item">
+                        <div class="absolute top-4 right-8 text-[8px] text-teal-500/50 font-black tracking-[0.3em]">REF_DOC_FORCE</div>
+                        <h3 class="text-xl font-black text-teal-500 uppercase tracking-tighter mb-6" data-i18n="info_forces"><i class="fa-solid fa-atom mr-3 text-teal-400/50"></i> Forțe Fundamentale</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4" data-i18n="info_forces_desc">Universul este guvernat de patru forțe fundamentale:</p>
+                        <ul class="list-disc list-inside text-gray-600 dark:text-gray-400 space-y-2">
+                            <li><strong class="text-gray-800 dark:text-white" data-i18n="term_strong_force">Forța Tare:</strong> <span data-i18n="desc_strong_force_1">Cea mai puternică forță, ține quarcii legați în protoni/neutroni. Mediată de</span> <strong class="text-red-400" data-i18n="term_gluons">gluoni</strong>.</li>
+                            <li><strong class="text-gray-800 dark:text-white" data-i18n="term_em_force">Forța Electromagnetică:</strong> <span data-i18n="desc_em_force_1">Acționează asupra particulelor cu sarcină electrică. Mediată de</span> <strong class="text-red-400" data-i18n="term_photons">fotoni</strong>.</li>
+                            <li><strong class="text-gray-800 dark:text-white" data-i18n="term_weak_force">Forța Slabă:</strong> <span data-i18n="desc_weak_force_1">Responsabilă pentru dezintegrările radioactive. Mediată de bosonii</span> <strong class="text-red-400" data-i18n="term_w_z_bosons">W și Z</strong>.</li>
+                            <li><strong class="text-gray-800 dark:text-white" data-i18n="term_gravity">Gravitația:</strong> <span data-i18n="desc_gravity">Cea mai slabă forță. Particula sa ipotetică, gravitonul, nu a fost încă descoperită.</span></li>
+                        </ul>
+                    </div>
+                    <div class="liquid-glass shimmer-wrapper p-8 rounded-3xl reveal-item">
+                        <div class="absolute top-4 right-8 text-[8px] text-teal-500/50 font-black tracking-[0.3em]">REF_DOC_GEN</div>
+                        <h3 class="text-xl font-black text-teal-500 uppercase tracking-tighter mb-6" data-i18n="info_generations"><i class="fa-solid fa-layer-group mr-3 text-teal-400/50"></i> Generațiile de Materie</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4" data-i18n="desc_generations_1">Fermionii (quarcii și leptonii) sunt grupați în trei "generații". Fiecare generație este o versiune mai masivă a celei precedente, dar cu proprietăți similare.</p>
+                        <ul class="list-none text-gray-600 dark:text-gray-400 space-y-4 text-sm">
+                            <li><strong class="text-gray-800 dark:text-white" data-i18n="term_gen1">Generația 1:</strong> <span data-i18n="desc_gen1">Conține quarcii Up și Down, electronul și neutrino-ul electronic. Aceasta formează toată materia stabilă din univers.</span></li>
+                            <li><strong class="text-gray-800 dark:text-white" data-i18n="term_gen2">Generația 2:</strong> <span data-i18n="desc_gen2">Conține quarcii Charm și Strange, muonul și neutrino-ul muonic. Aceste particule sunt instabile și se dezintegrează rapid.</span></li>
+                            <li><strong class="text-gray-800 dark:text-white" data-i18n="term_gen3">Generația 3:</strong> <span data-i18n="desc_gen3">Conține quarcii Top și Bottom, particula Tau și neutrino-ul tauonic. Sunt cele mai masive și mai instabile particule.</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Reference: Glossary & Units -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden" data-info-content="ref">
+                    <div class="liquid-glass shimmer-wrapper p-8 rounded-3xl reveal-item">
+                        <div class="absolute top-4 right-8 text-[8px] text-teal-500/50 font-black tracking-[0.3em]">REF_DOC_UNIT</div>
+                        <h3 class="text-xl font-black text-teal-500 uppercase tracking-tighter mb-6" data-i18n="info_units"><i class="fa-solid fa-ruler-combined mr-3 text-teal-400/50"></i> Unități de Măsură</h3>
+                        <div class="space-y-3 text-sm">
+                            <div>
+                                <strong class="text-gray-800 dark:text-white block" data-i18n="unit_ev">eV (Electronvolt)</strong>
+                                <span class="text-gray-600 dark:text-gray-400" data-i18n="desc_ev">Unitate de energie. 1 eV este energia câștigată de un electron accelerat printr-o diferență de potențial de 1 volt.</span>
+                                <div class="text-xs text-gray-500 mt-1" data-i18n="unit_multiples">Multipli: MeV (10⁶), GeV (10⁹), TeV (10¹²)</div>
+                            </div>
+                            <div>
+                                <strong class="text-gray-800 dark:text-white block" data-i18n="unit_c">c (Viteza luminii)</strong>
+                                <span class="text-gray-600 dark:text-gray-400" data-i18n="desc_c">Masa particulelor este adesea exprimată în eV/c² (conform E=mc²). În unități naturale, c=1, deci masa se exprimă direct în eV.</span>
+                            </div>
+                            <div>
+                                <strong class="text-gray-800 dark:text-white block" data-i18n="unit_b">b (Barn)</strong>
+                                <span class="text-gray-600 dark:text-gray-400" data-i18n="desc_b">Unitate de arie folosită pentru secțiunea eficace (probabilitatea de coliziune). 1 b = 10⁻²⁸ m².</span>
+                            </div>
+                            <div>
+                                <strong class="text-gray-800 dark:text-white block" data-i18n="unit_l">L (Luminozitate)</strong>
+                                <span class="text-gray-600 dark:text-gray-400" data-i18n="desc_l">Măsură a numărului de coliziuni potențiale pe unitatea de suprafață, pe unitatea de timp (cm⁻²s⁻¹).</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="liquid-glass shimmer-wrapper p-8 rounded-3xl reveal-item">
+                        <div class="absolute top-4 right-8 text-[8px] text-teal-500/50 font-black tracking-[0.3em]">REF_DOC_GLOS</div>
+                        <h3 class="text-xl font-black text-teal-500 uppercase tracking-tighter mb-6" data-i18n="info_glossary"><i class="fa-solid fa-list-ul mr-3 text-teal-400/50"></i> Glosar Termeni</h3>
+                        <ul class="list-none text-gray-600 dark:text-gray-400 space-y-3 text-sm">
+                            <li><strong class="text-purple-400" data-i18n="term_hadron">Hadron:</strong> <span data-i18n="desc_hadron">Particulă compusă din quarci (ex: proton, neutron, pion).</span></li>
+                            <li><strong class="text-green-400" data-i18n="term_fermion">Fermion:</strong> <span data-i18n="desc_fermion">Particulă cu spin semi-întreg (materie).</span></li>
+                            <li><strong class="text-red-400" data-i18n="term_boson_glossary">Boson:</strong> <span data-i18n="desc_boson_glossary">Particulă cu spin întreg (purtător de forță).</span></li>
+                            <li><strong class="text-amber-400" data-i18n="term_antimatter">Antimaterie:</strong> <span data-i18n="desc_antimatter">Materie compusă din antiparticule (masă identică, sarcină opusă).</span></li>
+                            <li><strong class="text-teal-400" data-i18n="term_spin">Spin:</strong> <span data-i18n="desc_spin">Moment cinetic intrinsec al unei particule (proprietate cuantică).</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- History: Timeline -->
+                <div class="grid grid-cols-1 gap-8 hidden" data-info-content="history">
+                    <div class="liquid-glass shimmer-wrapper p-10 rounded-3xl reveal-item">
+                        <div class="absolute top-4 right-8 text-[8px] text-teal-500/50 font-black tracking-[0.3em]">REF_HIST_TMLN</div>
+                        <h3 class="text-xl font-black text-teal-500 uppercase tracking-tighter mb-10" data-i18n="info_timeline"><i class="fa-solid fa-clock-rotate-left mr-3 text-teal-400/50"></i> Cronologie Descoperiri</h3>
+                        <div class="relative border-l-2 border-teal-500/30 ml-6 space-y-12" id="timeline-container">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module: Other Functions -->
+        <section id="other" class="module-section hidden">
+            <h2 class="animated-title text-3xl mb-6 border-l-4 border-yellow-500 pl-4" data-i18n="other_title" data-text="Funcționalități Suplimentare">Funcționalități Suplimentare</h2>
+            
+            <div class="animated-panel glass-panel p-6 rounded max-w-4xl mx-auto">
+                <h3 class="text-xl text-yellow-600 dark:text-yellow-400 mb-6 border-b border-gray-300 dark:border-gray-700 pb-2" data-i18n="compare_title">Comparare Particule</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-600 dark:text-gray-400 font-bold" data-i18n="compare_select_1">Selectează Particula 1</label>
+                        <select id="compare-p1" class="w-full modern-input rounded p-3 text-gray-800 dark:text-white outline-none transition-all hover:scale-105"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-2 text-gray-600 dark:text-gray-400 font-bold" data-i18n="compare_select_2">Selectează Particula 2</label>
+                        <select id="compare-p2" class="w-full modern-input rounded p-3 text-gray-800 dark:text-white outline-none transition-all hover:scale-105"></select>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button id="compare-btn" class="action-btn flex-1 bg-yellow-600 hover:bg-yellow-500 text-white py-3 rounded font-bold shadow-lg shadow-yellow-500/50 dark:shadow-[0_0_15px_rgba(234,179,8,0.5)] active:scale-95 transform transition-transform" data-i18n="compare_btn">COMPARĂ</button>
+                    <button id="export-pdf-btn" class="action-btn hidden px-8 bg-red-600 hover:bg-red-500 text-white py-3 rounded font-bold shadow-lg shadow-red-500/50 dark:shadow-[0_0_15px_rgba(220,38,38,0.5)] active:scale-95 transform transition-transform" data-i18n="compare_export_pdf"><i class="fa-solid fa-file-pdf mr-2"></i> PDF</button>
+                </div>
+                <div id="compare-result" class="mt-8 hidden transition-all duration-500 ease-in-out"></div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="animated-panel glass-panel p-6 rounded max-w-4xl mx-auto mt-8">
+                <h3 class="text-xl text-purple-600 dark:text-purple-400 mb-6 border-b border-gray-300 dark:border-gray-700 pb-2" data-i18n="quiz_title">Quiz Particule</h3>
+                
+                <div id="quiz-start-screen" class="text-center py-8">
+                    <p class="mb-6 text-gray-600 dark:text-gray-400 text-lg" data-i18n="quiz_intro">Testează-ți cunoștințele despre Modelul Standard!</p>
+                    <button id="quiz-start-btn" class="action-btn bg-purple-600 hover:bg-purple-500 text-white px-8 py-3 rounded font-bold shadow-lg shadow-purple-500/50 dark:shadow-[0_0_15px_rgba(147,51,234,0.5)] active:scale-95 transform transition-transform" data-i18n="quiz_btn_start">ÎNCEPE QUIZ</button>
+                    
+                    <!-- Leaderboard -->
+                    <div class="mt-10 pt-6 border-t border-gray-300 dark:border-gray-700 max-w-md mx-auto">
+                        <h4 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-4" data-i18n="quiz_leaderboard">Clasament Local</h4>
+                        <div id="quiz-leaderboard" class="text-sm text-left bg-white dark:bg-gray-900 rounded-lg p-4 shadow-inner border border-gray-200 dark:border-gray-700 min-h-[100px]">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <button id="clear-leaderboard-btn" class="text-xs text-red-500 hover:text-red-700 underline transition-colors" data-i18n="quiz_clear_scores">Șterge Istoric</button>
+                            <button id="export-leaderboard-csv-btn" class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded shadow" data-i18n="quiz_export_csv"><i class="fa-solid fa-download mr-1"></i> CSV</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-container" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <span id="quiz-progress" class="text-sm font-mono text-gray-500 dark:text-gray-400">1 / 5</span>
+                        <span id="quiz-score-display" class="font-bold text-purple-600 dark:text-purple-400 font-mono">Score: 0</span>
+                        <button id="quiz-quit-btn" class="text-xs font-bold text-red-500 hover:text-red-700 border border-red-500/30 hover:border-red-500 rounded px-3 py-1 transition-all" data-i18n="quiz_btn_quit">RENUNȚĂ</button>
+                    </div>
+                    <h4 id="quiz-question" class="text-xl font-bold text-gray-800 dark:text-white mb-8 min-h-[3rem] flex items-center justify-center text-center">Question text?</h4>
+                    <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
+                <div id="quiz-result-screen" class="hidden text-center py-8">
+                    <div class="text-6xl mb-4">🏆</div>
+                    <h4 class="text-2xl font-bold text-gray-800 dark:text-white mb-2" data-i18n="quiz_completed">Quiz Complet!</h4>
+                    <p id="quiz-final-msg" class="text-xl text-purple-600 dark:text-purple-400 mb-8">Ai obținut X din Y puncte.</p>
+                    <button id="quiz-restart-btn" class="action-btn bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded font-bold active:scale-95 transform transition-transform" data-i18n="quiz_btn_restart">Încearcă din nou</button>
+                    <button id="quiz-home-btn" class="ml-4 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 underline transition-colors" data-i18n="quiz_btn_home">Înapoi la meniu</button>
+                </div>
+            </div>
+
+            <!-- Memory Game Section -->
+            <div class="animated-panel glass-panel p-6 rounded max-w-4xl mx-auto mt-8">
+                <h3 class="text-xl text-green-600 dark:text-green-400 mb-6 border-b border-gray-300 dark:border-gray-700 pb-2" data-i18n="memory_title">Joc de Memorie: Particule</h3>
+                
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex gap-4">
+                        <span class="text-gray-600 dark:text-gray-400"><span data-i18n="memory_moves">Mutări:</span> <span id="memory-moves" class="font-mono font-bold text-green-600 dark:text-green-400">0</span></span>
+                        <span class="text-gray-600 dark:text-gray-400"><span data-i18n="memory_time">Timp:</span> <span id="memory-timer" class="font-mono font-bold text-green-600 dark:text-green-400">00:00</span></span>
+                    </div>
+                    <button id="memory-start-btn" class="action-btn bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded font-bold shadow-lg active:scale-95 transform transition-transform" data-i18n="memory_btn_start">Start Joc</button>
+                </div>
+
+                <div id="memory-grid" class="grid grid-cols-4 gap-4 min-h-[300px]">
+                    <!-- Cards generated by JS -->
+                    <div class="col-span-4 flex items-center justify-center text-gray-500 italic" data-i18n="memory_start_prompt">Apasă Start pentru a începe</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Particle Details Modal -->
+    <div id="particle-modal" class="fixed inset-0 bg-black/80 dark:bg-black/90 hidden flex items-center justify-center z-[100] backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-300 dark:border-green-500/30 p-8 rounded-2xl max-w-2xl w-full relative shadow-2xl dark:shadow-[0_0_50px_rgba(0,255,157,0.1)] backdrop-blur-md" id="modal-panel">
+            <button id="share-modal-btn" class="absolute top-5 right-16 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition z-50" title="Share"><i class="fa-solid fa-share-nodes fa-xl"></i></button>
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 dark:hover:text-white transition z-50"><i class="fa-solid fa-xmark fa-2x"></i></button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <script src="js/site.js"></script>
+</body>
+</html>
