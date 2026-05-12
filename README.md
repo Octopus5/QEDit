@@ -25,5 +25,5 @@ HTML5 Canvas: Folosit pentru animațiile de fundal și vizualizarea 3D a tunelul
 FontAwesome: Biblioteca de pictograme pentru interfața utilizatorului.
 
 Instalare și Rulare
-intra in QEDit -> WebApplication1 -> build -> bin si apasa pe QEDit-amd64-installer.exe
+intra in QEDit -> WebApplication1 apasa pe QEDit-amd64-installer.exe
 
