@@ -1,6 +1,7 @@
 QEDit este o aplicație educațională desktop interactivă concepută pentru a ajuta la procesul de invatarea și analiza datelor din fizica particulelor elementare și a Modelului Standard.
 
 Descriere
+
 QEDit transformă conceptele abstracte ale fizicii subatomice într-o experiență digitală palpabilă. Aplicația este structurată în mai multe module cheie:
 
 Catalogul Modelului Standard: O bază de date interactivă care prezintă proprietățile fundamentale (masă, sarcină, spin, generație) ale quarcilor, leptonilor și bosonilor.
