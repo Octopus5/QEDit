@@ -26,4 +26,5 @@ FontAwesome: Biblioteca de pictograme pentru interfața utilizatorului.
 
 Instalare și Rulare
 intra in QEDit -> WebApplication1 apasa pe QEDit-amd64-installer.exe
-
+sau intrand pe link-ul
+https://github.com/Octopus5/QEDit/releases/download/v1.0.0/QEDit-amd64-installer.exe
