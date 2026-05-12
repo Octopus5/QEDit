@@ -46,3 +46,5 @@ Instalare și Rulare
 intra in QEDit -> WebApplication1 apasa pe QEDit-amd64-installer.exe
 sau intrand pe link-ul
 https://github.com/Octopus5/QEDit/releases/download/v1.0.0/QEDit-amd64-installer.exe
+
+daca nu funcționează descarcati tot codul in format zip, extrageti tot, si intrati in sectiunea QEDit -> WebApplication1 si apasati pe QEDit.exe
